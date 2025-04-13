@@ -42,6 +42,8 @@ Here's an example of what you can do when it's connected to Claude.
 
    The first time you run it, you will be prompted to scan a QR code. Scan the QR code with your WhatsApp mobile app to authenticate.
 
+   > **Note:** The bridge runs a REST API server on port `:8080` for sending messages. If you get an `address already in use` error, ensure no other process (including another instance of the bridge) is using port 8080. You can use `sudo lsof -i :8080` to check and `kill <PID>` to stop the conflicting process.
+
    After approximately 20 days, you will might need to re-authenticate.
 
 3. **Connect to the MCP server**
@@ -63,6 +65,8 @@ Here's an example of what you can do when it's connected to Claude.
      }
    }
    ```
+
+   > **Important:** The `command` and `args` specified here tell Claude/Cursor how to launch the Python MCP server. This server communicates using **Standard Input/Output (stdio)**, NOT via HTTP on a specific port like the Go bridge. When you run `uv run main.py` manually in the terminal, it might seem "stuck" after installing dependencies – this is normal, as it's waiting for JSON-RPC commands via stdin from its parent process (Claude/Cursor).
 
    For **Claude**, save this as `claude_desktop_config.json` in your Claude Desktop configuration directory at:
 
@@ -169,6 +173,8 @@ By default, just the metadata of the media is stored in the local database. The 
 
 - If you encounter permission issues when running uv, you may need to add it to your PATH or use the full path to the executable.
 - Make sure both the Go application and the Python server are running for the integration to work properly.
+- **MCP Server Directory:** Always run the `uv run main.py` command from *within* the `whatsapp-mcp/whatsapp-mcp-server` directory. Running it from the parent directory will result in a "No such file or directory" error.
+- **MCP Server Seems Stuck:** If the `uv run main.py` command prints installation messages but then seems to hang without printing a "Uvicorn running..." message, this is likely correct behaviour. The server uses `stdio` transport and waits for input from the parent process (Claude/Cursor). Use `ps aux | grep main.py` to verify the Python process is running.
 
 ### Authentication Issues
 
